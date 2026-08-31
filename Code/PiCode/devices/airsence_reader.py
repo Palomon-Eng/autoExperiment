@@ -125,5 +125,4 @@ class AirsenceReader:
                 await asyncio.sleep(max(1.0, config.AIRSENCE_POLL_SECONDS + jitter))
 
 
-# THIS LINE IS CRITICAL - creates the instance that main.py imports
 airsence = AirsenceReader()
