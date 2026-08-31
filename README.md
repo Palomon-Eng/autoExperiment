@@ -15,8 +15,16 @@ On opening the page, you will be greeted by a terminal with live serial data fro
 
 Next, you will see the list of sensors and live readings. There is one M5 taking readings, two aranet sensors called Intake and Chamber, and one block for the airSence sensor. They will all display their current readings, and the aranet sensors have live graphs of the level of CO2 over time.
 There is a button at the top with the text download CSV. This will download a csv file containing all the data recorded, and all the commands given, with exact time stamps.
-To process this csv into a more readable format, use the code:
+To process this csv into a more readable format, use the code in formatting.py
 
-```python
-print("Hello World!")
+To set this system up from scratch, everything is in the code tab. Start by flashing the arduino code onto the Arduino Uno R3, and the M5 code on the M5 Stick C Plus 2.
+Clone this repository by using:
+```bash
+git clone https://github.com/Palomon-Eng/autoExperiment.git
+```
+Then set up the system by going to Code/PiCode and running the install script
+```bash
+cd autoExperiment/Code/PiCode
+chmod +x install.sh
+./install.sh
 ```
