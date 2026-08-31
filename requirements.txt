@@ -1,0 +1,8 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+pyserial-asyncio>=0.6
+bleak>=0.22.3
+bleak-retry-connector>=3.5.0
+aranet4>=2.4.0
+python-multipart>=0.0.9
+influxdb-client[async]>=1.44.0
