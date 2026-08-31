@@ -54,11 +54,11 @@ Wants=bluetooth.target
 [Service]
 Type=simple
 User=experiment
-WorkingDirectory=/home/experiment/reactor_console
-Environment="PATH=/home/experiment/reactor_console/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+WorkingDirectory=/home/experiment/autoExperiment/Code/PiCode
+Environment="PATH=/home/experiment/autoExperiment/Code/PiCode/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ExecStartPre=/usr/bin/sudo /usr/bin/hciconfig hci0 down
 ExecStartPre=/usr/bin/sudo /usr/bin/hciconfig hci0 up
-ExecStart=/home/experiment/reactor_console/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+ExecStart=/home/experiment/autoExperiment/Code/PiCode/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
 StandardOutput=journal
