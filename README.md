@@ -69,3 +69,6 @@ If the service isn't working, run the simple diagnosing script to get some hints
 chmod +x diagnose.sh
 ./diagnose.sh
 ```
+
+Below is a wiring schematic of the Arduino, relays, solenoids, and pump. The inductor symbols are for the solenoid valves, and the big motor symbol is for the pump.
+<img width="1352" height="976" alt="image" src="https://github.com/user-attachments/assets/5809092e-a3e6-47c3-8aeb-2844b3b0fe0f" />
