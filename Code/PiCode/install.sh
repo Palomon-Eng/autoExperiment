@@ -9,7 +9,7 @@ echo ""
 
 # Check if running as experiment user
 if [ "$USER" != "experiment" ]; then
-    echo "NOTE: Running as '$USER' user. This should work fine."
+    echo "NOTE: Running as '$USER' user. This will not work."
 fi
 
 # Update system
