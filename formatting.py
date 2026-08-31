@@ -1,4 +1,6 @@
-'''This code will take any csv you have inserted and turn it into a more readable fromat for processing, either on excel, matlab, or R. It takes the readings and sorts them by device, measurement, and finally timestamps. The csv will also include the commands given by the user'''
+'''This code will take any csv you have inserted and turn it into a more readable fromat for processing,
+either on excel, matlab, or R. It takes the readings and sorts them by device, measurement, and finally timestamps. 
+The csv will also include the commands given by the user'''
 
 import pandas as pd
 df = pd.read_csv("C:/Path/to/file/reactor_data_log.csv")
