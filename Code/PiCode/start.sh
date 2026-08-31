@@ -1,8 +1,5 @@
 #!/bin/bash
 # Startup script for Reactor Console
-
-cd /home/experiment/reactor_console
-
 # Activate virtual environment
 source venv/bin/activate
 
