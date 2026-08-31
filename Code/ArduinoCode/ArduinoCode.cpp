@@ -113,12 +113,12 @@ void loop() {
   
   if (currentMillis - previousCountdownMillis >= 1000) {
     previousCountdownMillis = currentMillis;
-    printLiveCountdown(currentMillis);
+    //printLiveCountdown(currentMillis); //Uncomment for a live countdown
   }
 
   if (currentMillis - previousSensorMillis >= SENSOR_INTERVAL) {
     previousSensorMillis = currentMillis;
-    readAndStoreSensors(); 
+    //readAndStoreSensors(); //Uncomment if sen55 is connected and you want sensor readings
   }
 }
 
