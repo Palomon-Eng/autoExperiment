@@ -12,9 +12,9 @@ import time
 log = logging.getLogger("ble_scheduler")
 
 # Time slots in seconds
-M5STICK_SLOT = 20
-ARANET4_SLOT = 20
-CYCLE_TIME = M5STICK_SLOT + ARANET4_SLOT  # 40 seconds total
+M5STICK_SLOT = 30
+ARANET4_SLOT = 30
+CYCLE_TIME = M5STICK_SLOT + ARANET4_SLOT  # 60 seconds total
 
 class BLEScheduler:
     def __init__(self):
@@ -45,5 +45,4 @@ class BLEScheduler:
             slot = self._get_current_slot()
             return slot == "aranet"
 
-# Create a global instance
 scheduler = BLEScheduler()
