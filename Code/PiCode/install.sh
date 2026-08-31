@@ -25,7 +25,6 @@ sudo apt install -y python3-venv python3-pip bluetooth bluez \
 
 # Create virtual environment
 echo "Step 3/7: Creating Python virtual environment..."
-cd /home/experiment/reactor_console
 python3 -m venv venv
 source venv/bin/activate
 
