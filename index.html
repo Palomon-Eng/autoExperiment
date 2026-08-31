@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactor Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0E0F;
+    --panel:#12171A;
+    --panel-2:#161C1F;
+    --line:#232B2E;
+    --amber:#FFB000;
+    --cyan:#5EEAD4;
+    --green:#3ECF8E;
+    --red:#FF5252;
+    --text:#D7DEDC;
+    --muted:#6B7876;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    font-size:14px;
+    padding:22px;
+    min-height:100vh;
+  }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--line);
+    padding-bottom:16px; margin-bottom:20px; flex-wrap:wrap; gap:12px;
+  }
+  .title{
+    font-weight:800; letter-spacing:0.14em; font-size:18px; color:var(--text);
+  }
+  .title span{color:var(--amber);}
+  .subtitle{color:var(--muted); font-size:11px; letter-spacing:0.08em; margin-top:2px;}
+  .topbar-right{display:flex; align-items:center; gap:16px;}
+  .rowcount{color:var(--muted); font-size:11px;}
+  .btn{
+    background:var(--panel-2); color:var(--text); border:1px solid var(--line);
+    padding:9px 16px; font-family:inherit; font-size:12px; letter-spacing:0.05em;
+    cursor:pointer; border-radius:3px; transition:border-color .15s, color .15s;
+  }
+  .btn:hover{border-color:var(--amber); color:var(--amber);}
+  .btn.primary{border-color:var(--amber); color:var(--amber);}
+  .btn.danger{border-color:var(--red); color:var(--red);}
+  .btn:disabled{opacity:.35; cursor:not-allowed;}
+  .btn.danger:hover{color:#fff; background:var(--red); border-color:var(--red);}
+
+  .grid{display:grid; grid-template-columns: 1.4fr 1fr; gap:16px;}
+  @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:4px;
+    padding:16px 18px;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .panel-name{font-weight:700; font-size:12px; letter-spacing:0.1em; color:var(--muted);}
+  .led{width:8px;height:8px;border-radius:50%; background:var(--red); display:inline-block; margin-right:8px; box-shadow:0 0 6px var(--red);}
+  .led.on{background:var(--green); box-shadow:0 0 6px var(--green);}
+  .status-line{display:flex; align-items:center; font-size:11px; color:var(--muted);}
+
+  .readouts{display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:14px; margin-bottom:6px;}
+  .readout{border-left:2px solid var(--line); padding-left:10px;}
+  .readout .val{font-size:26px; font-weight:700; color:var(--amber); font-variant-numeric:tabular-nums; line-height:1.1;}
+  .readout .val.cyan{color:var(--cyan);}
+  .readout .unit{font-size:11px; color:var(--muted); margin-left:3px;}
+  .readout .lbl{font-size:10px; color:var(--muted); letter-spacing:0.08em; margin-top:3px;}
+  canvas.spark{width:100%; height:34px; margin-top:8px; display:block;}
+  .empty-note{font-size:11px; color:var(--muted); font-style:italic;}
+
+  .stage-box{
+    margin:14px 0; padding:12px 14px; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:3px; font-size:12px; color:var(--cyan); letter-spacing:0.02em;
+  }
+  .steps{display:flex; gap:4px; margin-top:10px; flex-wrap:wrap;}
+  .step{flex:1; min-width:64px; text-align:center; padding:5px 2px; font-size:9px; letter-spacing:0.05em;
+    border:1px solid var(--line); border-radius:2px; color:var(--muted);}
+  .step.active{border-color:var(--amber); color:var(--amber);}
+
+  .controls{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+
+  .log{
+    margin-top:14px; background:#0D1113; border:1px solid var(--line); border-radius:3px;
+    height:150px; overflow-y:auto; padding:8px 10px; font-size:11px; color:var(--muted);
+  }
+  .log div{padding:2px 0; border-bottom:1px dashed #1B2224;}
+  .log .t{color:var(--muted); margin-right:8px;}
+
+  .side-stack{display:flex; flex-direction:column; gap:16px;}
+  .footer-note{margin-top:24px; font-size:10px; color:var(--muted); line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="title">REACTOR <span>CONSOLE</span></div>
+    <div class="subtitle">ARDUINO (CONTROL ONLY) · M5STICK SEN55 · ARANET4 &times;2 · AIRSENSE</div>
+  </div>
+  <div class="topbar-right">
+    <span class="rowcount" id="rowcount">0 rows logged</span>
+    <a class="btn primary" href="/api/csv" download>&#8595; DOWNLOAD CSV</a>
+  </div>
+</div>
+
+<div class="grid">
+  <!-- Arduino panel -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-name">ARDUINO — RELAY / VALVE / PUMP CONTROLLER</div>
+      <div class="status-line"><span class="led" id="led-arduino"></span><span id="status-arduino">offline</span></div>
+    </div>
+
+    <div class="stage-box" id="stage-msg">IDLE</div>
+    <div class="steps" id="steps"></div>
+
+    <div class="controls">
+      <button class="btn primary" data-action="start">START</button>
+      <button class="btn danger" data-action="stop">STOP</button>
+      <button class="btn" data-action="pump_test">PUMP TEST</button>
+      <button class="btn" data-action="leak_test">LEAK TEST</button>
+      <button class="btn primary" data-action="start_sequence">RUN SEQUENCE</button>
+      <button class="btn" data-action="unfreeze">UNFREEZE / CONTINUE</button>
+      <button class="btn" data-action="pulse_valve1">PULSE V1</button>
+      <button class="btn" data-action="pulse_valve2">PULSE V2</button>
+      <button class="btn" data-action="pulse_valve3">PULSE V3</button>
+      <button class="btn" data-action="pulse_pump">PULSE PUMP</button>
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- Sensor side panels -->
+  <div class="side-stack">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-name">M5STICK · SEN55 (BLE)</div>
+        <div class="status-line"><span class="led" id="led-m5stick"></span><span id="status-m5stick">offline</span></div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="val" id="v-m5stick-temperature">--<span class="unit">&deg;C</span></div><div class="lbl">TEMP</div></div>
+        <div class="readout"><div class="val cyan" id="v-m5stick-humidity">--<span class="unit">%</span></div><div class="lbl">HUM</div></div>
+        <div class="readout"><div class="val" id="v-m5stick-nox">--<span class="unit">idx</span></div><div class="lbl">NOx</div></div>
+        <div class="readout"><div class="val cyan" id="v-m5stick-pm25">--<span class="unit">&micro;g</span></div><div class="lbl">PM2.5</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-name">ARANET 4 — INTAKE</div>
+        <div class="status-line"><span class="led" id="led-aranet_1"></span><span id="status-aranet_1">offline</span></div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="val" id="v-aranet_1-co2">--<span class="unit">ppm</span></div><div class="lbl">CO2</div><canvas class="spark" id="s-aranet_1-co2"></canvas></div>
+        <div class="readout"><div class="val cyan" id="v-aranet_1-temperature">--<span class="unit">&deg;C</span></div><div class="lbl">TEMP</div></div>
+        <div class="readout"><div class="val" id="v-aranet_1-humidity">--<span class="unit">%</span></div><div class="lbl">HUM</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-name">ARANET 4 — CHAMBER</div>
+        <div class="status-line"><span class="led" id="led-aranet_2"></span><span id="status-aranet_2">offline</span></div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><div class="val" id="v-aranet_2-co2">--<span class="unit">ppm</span></div><div class="lbl">CO2</div><canvas class="spark" id="s-aranet_2-co2"></canvas></div>
+        <div class="readout"><div class="val cyan" id="v-aranet_2-temperature">--<span class="unit">&deg;C</span></div><div class="lbl">TEMP</div></div>
+        <div class="readout"><div class="val" id="v-aranet_2-humidity">--<span class="unit">%</span></div><div class="lbl">HUM</div></div>
+      </div>
+    </div>
+
+    <!-- AirSENCE panel: field set isn't fixed (depends on which pollutant
+         sensors the unit has, see config.AIRSENCE_FIELD_MAP), so tiles are
+         built dynamically from whatever fields actually arrive rather than
+         hardcoded like the panels above. -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-name">AIRSENSE — AMBIENT AIR QUALITY</div>
+        <div class="status-line"><span class="led" id="led-airsence"></span><span id="status-airsence">offline</span></div>
+      </div>
+      <div class="readouts" id="readouts-airsence">
+        <div class="empty-note" id="airsence-empty-note">Waiting for data&hellip;</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">
+  Panel labels ("Intake" / "Chamber") and MAC addresses are set in config.py.
+  AirSENCE's tiles are built from whatever pollutant fields the unit actually reports (config.AIRSENCE_FIELD_MAP).
+  CSV is a long-format log (timestamp, source, field, value, unit). A fresh file is started every time the app is launched — sensor readings (M5Stick, Aranet4, AirSENCE) are written once a minute per source; Arduino status/stage events are written immediately as they happen. The Arduino itself is control-only here — no sensor readings are read from it.
+</div>
+
+<script>
+const STAGE_STEPS = [
+  "V3 CLOSED RUN", "V3 OPEN RUN", "FREEZE", "POST-FREEZE", "FINAL FREEZE", "FINAL RUN", "COMPLETE"
+];
+function renderSteps(){
+  const el = document.getElementById('steps');
+  el.innerHTML = STAGE_STEPS.map(s => `<div class="step" data-step="${s}">${s}</div>`).join('');
+}
+renderSteps();
+
+function setActiveStep(stageMsg){
+  const msg = stageMsg.toUpperCase();
+  document.querySelectorAll('.step').forEach(el => {
+    el.classList.toggle('active', msg.includes(el.dataset.step));
+  });
+}
+
+const sparkData = {}; // key "source-field" -> [values]
+
+function pushSpark(source, field, value){
+  const key = `${source}-${field}`;
+  const canvas = document.getElementById(`s-${key}`);
+  if(!canvas) return;
+  if(!sparkData[key]) sparkData[key] = [];
+  sparkData[key].push(value);
+  if(sparkData[key].length > 80) sparkData[key].shift();
+  drawSpark(canvas, sparkData[key]);
+}
+
+function drawSpark(canvas, values){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth * devicePixelRatio;
+  const h = canvas.height = canvas.clientHeight * devicePixelRatio;
+  ctx.clearRect(0,0,w,h);
+  if(values.length < 2) return;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max - min) || 1;
+  ctx.beginPath();
+  ctx.strokeStyle = '#FFB000';
+  ctx.lineWidth = 1.5 * devicePixelRatio;
+  values.forEach((v,i) => {
+    const x = (i/(values.length-1)) * w;
+    const y = h - ((v - min)/range) * (h*0.85) - (h*0.075);
+    i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+function setReadout(source, field, value, decimals=1){
+  const el = document.getElementById(`v-${source}-${field}`);
+  if(!el) return;
+  const unitSpan = el.querySelector('.unit');
+  const unitHtml = unitSpan ? unitSpan.outerHTML : '';
+  el.innerHTML = `${Number(value).toFixed(decimals)}${unitHtml}`;
+  pushSpark(source, field, Number(value));
+}
+
+function setDeviceStatus(source, online){
+  const led = document.getElementById(`led-${source}`);
+  const label = document.getElementById(`status-${source}`);
+  if(led) led.classList.toggle('on', !!online);
+  if(label) label.textContent = online ? 'online' : 'offline';
+}
+
+function appendLog(message){
+  const log = document.getElementById('log');
+  const row = document.createElement('div');
+  const t = new Date().toLocaleTimeString();
+  row.innerHTML = `<span class="t">${t}</span>${message}`;
+  log.prepend(row);
+  while(log.children.length > 150) log.removeChild(log.lastChild);
+  if(message.toUpperCase().includes('STAGE') || message.toUpperCase().includes('IDLE') || message.toUpperCase().includes('STOP')){
+    document.getElementById('stage-msg').textContent = message;
+    setActiveStep(message);
+  }
+}
+
+// --- AirSENCE: dynamic tiles ------------------------------------------
+// Unlike the M5Stick/Aranet4 panels (fixed, known fields), AirSENCE's
+// field set depends on which pollutant sensors the physical unit has
+// (see config.AIRSENCE_FIELD_MAP) and isn't known ahead of time. Tiles
+// for it are created on first sight of each field rather than hardcoded
+// in the HTML above.
+function airsenceFieldLabel(field){
+  return field.replace(/_/g, ' ').toUpperCase();
+}
+
+function ensureAirsenceTile(field, unit){
+  const id = `v-airsence-${field}`;
+  if(document.getElementById(id)) return;
+  const note = document.getElementById('airsence-empty-note');
+  if(note) note.remove();
+  const container = document.getElementById('readouts-airsence');
+  const readout = document.createElement('div');
+  readout.className = 'readout';
+  readout.innerHTML = `<div class="val" id="${id}">--<span class="unit">${unit || ''}</span></div><div class="lbl">${airsenceFieldLabel(field)}</div>`;
+  container.appendChild(readout);
+}
+
+async function loadSnapshot(){
+  const res = await fetch('/api/snapshot');
+  const data = await res.json();
+  document.getElementById('rowcount').textContent = `${data.row_count} rows logged`;
+  Object.entries(data.devices).forEach(([source, online]) => setDeviceStatus(source, online));
+  Object.entries(data.readings).forEach(([source, fields]) => {
+    Object.entries(fields).forEach(([field, info]) => {
+      if(typeof info.value === 'number'){
+        if(source === 'airsence') ensureAirsenceTile(field, info.unit);
+        setReadout(source, field, info.value);
+      }
+      if(field === 'status') appendLog(info.value);
+    });
+  });
+}
+
+async function backfillSparks(){
+  const targets = [
+    ['aranet_1','co2'], ['aranet_2','co2']
+  ];
+  for(const [source, field] of targets){
+    try{
+      const res = await fetch(`/api/history/${source}/${field}`);
+      const points = await res.json();
+      const key = `${source}-${field}`;
+      sparkData[key] = points.map(p => p.value);
+      const canvas = document.getElementById(`s-${key}`);
+      if(canvas) drawSpark(canvas, sparkData[key]);
+    }catch(e){}
+  }
+}
+
+function connectWS(){
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onmessage = (evt) => {
+    const e = JSON.parse(evt.data);
+    if(e.type === 'reading'){
+      Object.entries(e.fields).forEach(([field, value]) => {
+        if(typeof value === 'number'){
+          if(e.source === 'airsence') ensureAirsenceTile(field, (e.units || {})[field]);
+          setReadout(e.source, field, value);
+        }
+      });
+      fetch('/api/snapshot').then(r=>r.json()).then(d=>{
+        document.getElementById('rowcount').textContent = `${d.row_count} rows logged`;
+      });
+    } else if(e.type === 'device_status'){
+      setDeviceStatus(e.source, e.state === 'connected');
+    } else if(e.type === 'log'){
+      appendLog(e.message);
+    }
+  };
+  ws.onclose = () => setTimeout(connectWS, 2000);
+}
+
+document.querySelectorAll('.controls .btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const action = btn.dataset.action;
+    btn.disabled = true;
+    try{
+      const res = await fetch(`/api/arduino/${action}`, {method:'POST'});
+      const data = await res.json();
+      if(!data.ok) appendLog(`ERROR: ${data.error || 'command failed'}`);
+    }catch(e){
+      appendLog(`ERROR: ${e}`);
+    }
+    setTimeout(() => btn.disabled = false, 400);
+  });
+});
+
+loadSnapshot();
+backfillSparks();
+connectWS();
+window.addEventListener('resize', () => {
+  Object.entries(sparkData).forEach(([key, values]) => {
+    const canvas = document.getElementById(`s-${key}`);
+    if(canvas) drawSpark(canvas, values);
+  });
+});
+</script>
+
+</body>
+</html>
